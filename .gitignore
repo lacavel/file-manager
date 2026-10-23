@@ -6,5 +6,5 @@
 
 !cmake/
 
-!README.md
+!*.md
 !CMakeLists.txt
