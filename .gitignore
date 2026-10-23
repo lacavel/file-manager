@@ -1,0 +1,10 @@
+*
+!.gitignore
+
+!mng/
+!mng_core/
+
+!cmake/
+
+!README.md
+!CMakeLists.txt
