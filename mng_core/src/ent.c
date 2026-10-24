@@ -17,8 +17,8 @@ static char *get_path(const char *dir_path, const char *ent_nm) {
   if (dir_len > SIZE_MAX - sep_len || dir_len + sep_len > SIZE_MAX - nm_len - 1)
     return NULL;
 
-  char *path = NULL;
-  if (!(path = malloc(dir_len + sep_len + nm_len + 1)))
+  char *path = malloc(dir_len + sep_len + nm_len + 1);
+  if (!path)
     return NULL;
 
   memcpy(path, dir_path, dir_len);
@@ -31,8 +31,8 @@ static char *get_path(const char *dir_path, const char *ent_nm) {
 }
 
 static char *fmt_ent_type(const char *ent_path) {
-  const struct stat *sts;
-  if (!(sts = get_ent_sts(ent_path)))
+  const struct stat *sts = get_ent_sts(ent_path);
+  if (!sts)
     return NULL;
 
   switch (sts->st_mode & S_IFMT) {
@@ -70,9 +70,8 @@ ssize_t pop_dir(Ent **out_dir, const char *dir_path) {
     return -1;
 
   size_t ent_cnt = 0, cpty = 16;
-  Ent *dir = NULL;
-
-  if (!(dir = malloc(cpty * sizeof(*dir))))
+  Ent *dir = malloc(cpty * sizeof(*dir));
+  if (!dir)
     goto err;
 
   struct dirent *e;
@@ -99,8 +98,8 @@ ssize_t pop_dir(Ent **out_dir, const char *dir_path) {
       if (cpty > SIZE_MAX / sizeof(*dir))
         goto err;
 
-      Ent *tmp = NULL;
-      if (!(tmp = realloc(dir, cpty * sizeof(*dir))))
+      Ent *tmp = realloc(dir, cpty * sizeof(*dir));
+      if (!tmp)
         goto err;
 
       dir = tmp;
@@ -112,12 +111,12 @@ ssize_t pop_dir(Ent **out_dir, const char *dir_path) {
       goto err;
     memcpy(dir[ent_cnt].ent_nm, e->d_name, nm_len + 1);
 
-    char *path = NULL;
-    if (!(path = get_path(dir_path, e->d_name)))
+    char *path = get_path(dir_path, e->d_name);
+    if (!path)
       goto err;
 
-    const char *ent_type = NULL;
-    if (!(ent_type = fmt_ent_type(path)))
+    const char *ent_type = fmt_ent_type(path);
+    if (!ent_type)
       continue;
 
     free(path);

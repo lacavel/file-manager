@@ -9,130 +9,146 @@
 #include <sys/stat.h>
 #include <time.h>
 
-size_t get_ent_own_perms(char *own_perms, const char *ent_path) {
-  if (!ent_path || !own_perms)
+int get_ent_own_perms(char *own_perms_buf, const char *ent_path) {
+  if (!ent_path || !own_perms_buf)
+    return -1;
+  const struct stat *sts = get_ent_sts(ent_path);
+  if (!sts)
     return -1;
 
-  const struct stat *sts;
-  if (!(sts = get_ent_sts(ent_path)))
-    return -1;
+  mode_t mode = sts->st_mode & 07777;
+  char *p = own_perms_buf;
 
-  return snprintf(own_perms, 12, "%s%s%s",
-                  ((sts->st_mode & 07777) & S_IRUSR) ? "" : "",
-                  ((sts->st_mode & 07777) & S_IWUSR) ? "" : " ",
-                  ((sts->st_mode & 07777) & S_IXUSR) ? "" : " ");
+  p = stpcpy(p, (mode & S_IRUSR) ? "" : "");
+  p = stpcpy(p, (mode & S_IWUSR) ? "" : " ");
+  p = stpcpy(p, (mode & S_IXUSR) ? "" : " ");
 
-  return -1;
+  return p - own_perms_buf;
 }
 
-size_t get_ent_grp_perms(char *grp_perms, const char *ent_path) {
-  if (!ent_path || !grp_perms)
+int get_ent_grp_perms(char *grp_perms_buf, const char *ent_path) {
+  if (!ent_path || !grp_perms_buf)
+    return -1;
+  const struct stat *sts = get_ent_sts(ent_path);
+  if (!sts)
     return -1;
 
-  const struct stat *sts;
-  if ((sts = get_ent_sts(ent_path)))
-    return snprintf(grp_perms, 12, "%s%s%s",
-                    ((sts->st_mode & 07777) & S_IRGRP) ? "" : "",
-                    ((sts->st_mode & 07777) & S_IWGRP) ? "" : " ",
-                    ((sts->st_mode & 07777) & S_IXGRP) ? "" : " ");
-  return -1;
+  mode_t mode = sts->st_mode & 07777;
+  char *p = grp_perms_buf;
+
+  p = stpcpy(p, (mode & S_IRGRP) ? "" : "");
+  p = stpcpy(p, (mode & S_IWGRP) ? "" : " ");
+  p = stpcpy(p, (mode & S_IXGRP) ? "" : " ");
+
+  return p - grp_perms_buf;
 }
 
-size_t get_ent_oth_perms(char *oth_perms, const char *ent_path) {
-  if (!ent_path || !oth_perms)
+int get_ent_oth_perms(char *oth_perms_buf, const char *ent_path) {
+  if (!ent_path || !oth_perms_buf)
+    return -1;
+  const struct stat *sts = get_ent_sts(ent_path);
+  if (!sts)
     return -1;
 
-  const struct stat *sts;
-  if ((sts = get_ent_sts(ent_path)))
-    return snprintf(oth_perms, 12, "%s%s%s",
-                    ((sts->st_mode & 07777) & S_IROTH) ? "" : "",
-                    ((sts->st_mode & 07777) & S_IWOTH) ? "" : " ",
-                    ((sts->st_mode & 07777) & S_IXOTH) ? "" : " ");
+  mode_t mode = sts->st_mode & 07777;
+  char *p = oth_perms_buf;
 
-  return -1;
+  p = stpcpy(p, (mode & S_IROTH) ? "" : "");
+  p = stpcpy(p, (mode & S_IWOTH) ? "" : " ");
+  p = stpcpy(p, (mode & S_IXOTH) ? "" : " ");
+
+  return p - oth_perms_buf;
 }
 
-size_t get_ent_own(char *buf, const size_t buf_sz, const char *ent_path) {
-  if (!ent_path)
+int get_ent_own(char *own_buf, const char *ent_path) {
+  if (!ent_path || !own_buf)
+    return -1;
+  const struct stat *sts = get_ent_sts(ent_path);
+  if (!sts)
     return -1;
 
-  const struct stat *sts;
-  const struct passwd *pwd;
-  if ((sts = get_ent_sts(ent_path)))
-    if ((pwd = getpwuid(sts->st_uid)))
-      if (buf_sz > strlen(pwd->pw_name))
-        return snprintf(buf, buf_sz, "%s", pwd->pw_name);
-  return -1;
+  const struct passwd *pwd = getpwuid(sts->st_uid);
+  if (!pwd)
+    return -1;
+
+  size_t len = strlen(pwd->pw_name);
+  memcpy(own_buf, pwd->pw_name, len + 1);
+  return (int)len;
 }
 
-size_t get_ent_grp(char *buf, const size_t buf_sz, const char *ent_path) {
-  if (!ent_path)
+int get_ent_grp(char *grp_buf, const char *ent_path) {
+  if (!ent_path || !grp_buf)
+    return -1;
+  const struct stat *sts = get_ent_sts(ent_path);
+  if (!sts)
     return -1;
 
-  const struct stat *sts;
-  const struct group *grp;
-  if ((sts = get_ent_sts(ent_path)))
-    if ((grp = getgrgid(sts->st_gid)))
-      if (buf_sz < strlen(grp->gr_name))
-        snprintf(buf, buf_sz, "%s", grp->gr_name);
-  return -1;
+  const struct group *grp = getgrgid(sts->st_gid);
+  if (!grp)
+    return -1;
+
+  size_t len = strlen(grp->gr_name);
+  memcpy(grp_buf, grp->gr_name, len + 1);
+  return (int)len;
 }
 
-size_t get_ent_sz(char *buf, const size_t buf_sz, const char *ent_path) {
-  if (!ent_path || !buf)
+int get_ent_sz(char *sz_buf, const char *ent_path) {
+  if (!ent_path || !sz_buf)
     return -1;
-
-  const struct stat *sts;
-  if (!(sts = get_ent_sts(ent_path)))
+  const struct stat *sts = get_ent_sts(ent_path);
+  if (!sts)
     return -1;
 
   double sz = sts->st_size;
-
   uint8_t i = 0;
-  for (; sz >= 1024 && i < 4; i++)
-    sz /= 1024;
+  for (; sz >= 1024.0 && i < 4; i++)
+    sz /= 1024.0;
 
-  return snprintf(buf, buf_sz, "%.1f %s", sz,
+  return snprintf(sz_buf, 32, "%.1f %s", sz,
                   ((const char *[]){"B", "KB", "MB", "GB", "TB"})[i]);
 }
 
-size_t get_ent_acs_tm(char *buf, const size_t buf_sz, const char *ent_path,
-                      const char *tm_fmt) {
-  if (!ent_path || !buf)
+int get_ent_acs_tm(char *acs_tm_buf, const char *ent_path, const char *tm_fmt) {
+  if (!ent_path || !acs_tm_buf)
+    return -1;
+  const struct stat *sts = get_ent_sts(ent_path);
+  if (!sts)
     return -1;
 
-  const struct stat *sts;
-  const struct tm *tm;
-  if ((sts = get_ent_sts(ent_path)))
-    if ((tm = localtime(&sts->st_atime)))
-      return strftime(buf, buf_sz, tm_fmt ? tm_fmt : "%%d-%m-%Y %H:%M:%S", tm);
+  const struct tm *tm = localtime(&sts->st_atime);
+  if (!tm)
+    return -1;
 
-  return -1;
+  return (int)strftime(acs_tm_buf, 64, tm_fmt ? tm_fmt : "%d-%m-%Y %H:%M:%S",
+                       tm);
 }
 
-size_t get_ent_mod_tm(char *buf, const size_t buf_sz, const char *ent_path,
-                      const char *tm_fmt) {
-  if (!ent_path || !buf)
+int get_ent_mod_tm(char *mod_tm_buf, const char *ent_path, const char *tm_fmt) {
+  if (!ent_path || !mod_tm_buf)
+    return -1;
+  const struct stat *sts = get_ent_sts(ent_path);
+  if (!sts)
     return -1;
 
-  const struct stat *sts;
-  const struct tm *tm;
-  if ((sts = get_ent_sts(ent_path)))
-    if ((tm = localtime(&sts->st_mtime)))
-      return strftime(buf, buf_sz, tm_fmt ? tm_fmt : "%%d-%m-%Y %H:%M:%S", tm);
+  const struct tm *tm = localtime(&sts->st_mtime);
+  if (!tm)
+    return -1;
 
-  return -1;
+  return (int)strftime(mod_tm_buf, 64, tm_fmt ? tm_fmt : "%d-%m-%Y %H:%M:%S",
+                       tm);
 }
 
-size_t get_ent_chg_tm(char *buf, const size_t buf_sz, const char *ent_path,
-                      const char *tm_fmt) {
-  if (!ent_path || !buf)
+int get_ent_chg_tm(char *chg_tm_buf, const char *ent_path, const char *tm_fmt) {
+  if (!ent_path || !chg_tm_buf)
+    return -1;
+  const struct stat *sts = get_ent_sts(ent_path);
+  if (!sts)
     return -1;
 
-  const struct stat *sts;
-  const struct tm *tm;
-  if ((sts = get_ent_sts(ent_path)))
-    if ((tm = localtime(&sts->st_ctime)))
-      return strftime(buf, buf_sz, tm_fmt ? tm_fmt : "%%d-%m-%Y %H:%M:%S", tm);
-  return -1;
+  const struct tm *tm = localtime(&sts->st_ctime);
+  if (!tm)
+    return -1;
+
+  return (int)strftime(chg_tm_buf, 64, tm_fmt ? tm_fmt : "%d-%m-%Y %H:%M:%S",
+                       tm);
 }
