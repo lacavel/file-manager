@@ -4,7 +4,6 @@
 #include <grp.h>
 #include <pwd.h>
 #include <stdint.h>
-#include <stdio.h>
 #include <string.h>
 #include <sys/stat.h>
 #include <time.h>
@@ -12,7 +11,7 @@
 int get_ent_own_perms(char *own_perms_buf, const char *ent_path) {
   if (!ent_path || !own_perms_buf)
     return -1;
-  const struct stat *sts = get_ent_sts(ent_path);
+  const struct stat *sts = get_ent_sts(ent_path, false);
   if (!sts)
     return -1;
 
@@ -29,7 +28,7 @@ int get_ent_own_perms(char *own_perms_buf, const char *ent_path) {
 int get_ent_grp_perms(char *grp_perms_buf, const char *ent_path) {
   if (!ent_path || !grp_perms_buf)
     return -1;
-  const struct stat *sts = get_ent_sts(ent_path);
+  const struct stat *sts = get_ent_sts(ent_path, false);
   if (!sts)
     return -1;
 
@@ -46,7 +45,7 @@ int get_ent_grp_perms(char *grp_perms_buf, const char *ent_path) {
 int get_ent_oth_perms(char *oth_perms_buf, const char *ent_path) {
   if (!ent_path || !oth_perms_buf)
     return -1;
-  const struct stat *sts = get_ent_sts(ent_path);
+  const struct stat *sts = get_ent_sts(ent_path, false);
   if (!sts)
     return -1;
 
@@ -63,7 +62,7 @@ int get_ent_oth_perms(char *oth_perms_buf, const char *ent_path) {
 int get_ent_own(char *own_buf, const char *ent_path) {
   if (!ent_path || !own_buf)
     return -1;
-  const struct stat *sts = get_ent_sts(ent_path);
+  const struct stat *sts = get_ent_sts(ent_path, false);
   if (!sts)
     return -1;
 
@@ -79,7 +78,7 @@ int get_ent_own(char *own_buf, const char *ent_path) {
 int get_ent_grp(char *grp_buf, const char *ent_path) {
   if (!ent_path || !grp_buf)
     return -1;
-  const struct stat *sts = get_ent_sts(ent_path);
+  const struct stat *sts = get_ent_sts(ent_path, false);
   if (!sts)
     return -1;
 
@@ -92,26 +91,10 @@ int get_ent_grp(char *grp_buf, const char *ent_path) {
   return (int)len;
 }
 
-int get_ent_sz(char *sz_buf, const char *ent_path) {
-  if (!ent_path || !sz_buf)
-    return -1;
-  const struct stat *sts = get_ent_sts(ent_path);
-  if (!sts)
-    return -1;
-
-  double sz = sts->st_size;
-  uint8_t i = 0;
-  for (; sz >= 1024.0 && i < 4; i++)
-    sz /= 1024.0;
-
-  return snprintf(sz_buf, 32, "%.1f %s", sz,
-                  ((const char *[]){"B", "KB", "MB", "GB", "TB"})[i]);
-}
-
 int get_ent_acs_tm(char *acs_tm_buf, const char *ent_path, const char *tm_fmt) {
   if (!ent_path || !acs_tm_buf)
     return -1;
-  const struct stat *sts = get_ent_sts(ent_path);
+  const struct stat *sts = get_ent_sts(ent_path, false);
   if (!sts)
     return -1;
 
@@ -126,7 +109,7 @@ int get_ent_acs_tm(char *acs_tm_buf, const char *ent_path, const char *tm_fmt) {
 int get_ent_mod_tm(char *mod_tm_buf, const char *ent_path, const char *tm_fmt) {
   if (!ent_path || !mod_tm_buf)
     return -1;
-  const struct stat *sts = get_ent_sts(ent_path);
+  const struct stat *sts = get_ent_sts(ent_path, false);
   if (!sts)
     return -1;
 
@@ -141,7 +124,7 @@ int get_ent_mod_tm(char *mod_tm_buf, const char *ent_path, const char *tm_fmt) {
 int get_ent_chg_tm(char *chg_tm_buf, const char *ent_path, const char *tm_fmt) {
   if (!ent_path || !chg_tm_buf)
     return -1;
-  const struct stat *sts = get_ent_sts(ent_path);
+  const struct stat *sts = get_ent_sts(ent_path, false);
   if (!sts)
     return -1;
 

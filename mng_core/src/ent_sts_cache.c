@@ -6,12 +6,12 @@
 static struct stat ent_sts_cache;
 static char ent_path_cache[PATH_MAX];
 
-const struct stat *get_ent_sts(const char *ent_path) {
+const struct stat *get_ent_sts(const char *ent_path, bool flw) {
   if (!ent_path)
     return NULL;
   if (strcmp(ent_path_cache, ent_path) == 0)
     return &ent_sts_cache;
-  else if (lstat(ent_path, &ent_sts_cache) == -1)
+  else if ((flw ? stat : lstat)(ent_path, &ent_sts_cache) == -1)
     return NULL;
 
   strncpy(ent_path_cache, ent_path, PATH_MAX - 1);

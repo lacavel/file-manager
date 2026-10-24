@@ -30,8 +30,8 @@ static char *get_path(const char *dir_path, const char *ent_nm) {
   return path;
 }
 
-static char *fmt_ent_type(const char *ent_path) {
-  const struct stat *sts = get_ent_sts(ent_path);
+static char *get_ent_type(const char *ent_path) {
+  const struct stat *sts = get_ent_sts(ent_path, false);
   if (!sts)
     return NULL;
 
@@ -41,11 +41,11 @@ static char *fmt_ent_type(const char *ent_path) {
   case S_IFDIR:
     return "";
   case S_IFLNK: {
-    struct stat sts;
-    if (stat(ent_path, &sts) == -1)
+    const struct stat *sts_flw = get_ent_sts(ent_path, true);
+    if (!sts_flw)
       return NULL;
 
-    if (S_ISDIR(sts.st_mode))
+    if (S_ISDIR(sts_flw->st_mode))
       return "";
     else
       return "";
@@ -57,6 +57,22 @@ static char *fmt_ent_type(const char *ent_path) {
   default:
     return "";
   }
+}
+
+static int get_ent_sz(char *sz_buf, const char *ent_path) {
+  if (!ent_path || !sz_buf)
+    return -1;
+  const struct stat *sts = get_ent_sts(ent_path, false);
+  if (!sts)
+    return -1;
+
+  double sz = sts->st_size;
+  uint8_t i = 0;
+  for (; sz >= 1024.0 && i < 4; i++)
+    sz /= 1024.0;
+
+  return snprintf(sz_buf, 16, "%.1f %s", sz,
+                  ((const char *[]){"B", "KB", "MB", "GB", "TB"})[i]);
 }
 
 ssize_t pop_dir(Ent **out_dir, const char *dir_path) {
@@ -105,24 +121,29 @@ ssize_t pop_dir(Ent **out_dir, const char *dir_path) {
       dir = tmp;
     }
 
+    char *path = get_path(dir_path, e->d_name);
+    if (!path)
+      goto err;
+
+    char ent_sz[16];
+    const int sz_len = get_ent_sz(ent_sz, path);
+    const char *ent_type = get_ent_type(path);
+
+    free(path);
+
+    if (sz_len < 0 || sz_len >= 16)
+      goto err;
+    if (!ent_type)
+      goto err;
+
+    memcpy(dir[ent_cnt].ent_sz, ent_sz, sz_len + 1);
+    memcpy(dir[ent_cnt].ent_type, ent_type, strlen(ent_type) + 1);
+
     const size_t nm_len = strlen(e->d_name);
     dir[ent_cnt].ent_nm = malloc(nm_len + 1);
     if (!dir[ent_cnt].ent_nm)
       goto err;
     memcpy(dir[ent_cnt].ent_nm, e->d_name, nm_len + 1);
-
-    char *path = get_path(dir_path, e->d_name);
-    if (!path)
-      goto err;
-
-    const char *ent_type = fmt_ent_type(path);
-    if (!ent_type)
-      continue;
-
-    free(path);
-    const size_t type_len = strlen(ent_type);
-    memcpy(dir[ent_cnt].ent_type, ent_type, type_len + 1);
-    dir[ent_cnt].ent_type[type_len] = '\0';
 
     ent_cnt++;
   }
