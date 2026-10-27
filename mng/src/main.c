@@ -1,4 +1,4 @@
-#include "mng_core/ent.h"
+#include "mng_core/e_qry.h"
 #include <locale.h>
 #include <ncurses.h>
 #include <stdio.h>
@@ -19,44 +19,32 @@ int main(int argc, char **argv) {
   WINDOW *win = newwin(LINES - 2, COLS, 1, 0);
   box(win, 0, 0);
 
-  Ent *dir = NULL;
   const char *path = (argc == 2 && argv[1] != NULL) ? argv[1] : ".";
 
-  ssize_t ent_cnt_signed = pop_dir(&dir, path);
-  if (ent_cnt_signed < 0 || dir == NULL) {
-    endwin();
-    fprintf(stderr, "Error: Failed to read directory '%s'\n", path);
+  size_t max_nm_len = 0;
+  char **dir;
+  ssize_t e_cnt = qry_dir(&dir, path, &max_nm_len);
+  if (e_cnt < 0)
     return 1;
-  }
-  size_t ent_cnt = (size_t)ent_cnt_signed;
-
   int max_y = getmaxy(win);
   int max_x = getmaxx(win);
 
-  int rows_per_col = max_y - 2;
-  if (rows_per_col < 1)
-    rows_per_col = 1;
+  int col_width = max_nm_len;
 
-  int col_width = max_x / 2;
+  for (size_t i = 0; i < (size_t)e_cnt; i++) {
+    int y = (i % (max_y - 2)) + 1;
 
-  for (size_t i = 0; i < ent_cnt; i++) {
-    int y = (i % rows_per_col) + 1;
-
-    int col_index = i / rows_per_col;
+    int col_index = i / (max_y - 2);
     int x = 2 + (col_index * col_width);
 
     if (x >= max_x - 5)
       break;
 
-    char line_buf[128];
-    snprintf(line_buf, sizeof(line_buf), "%s %s (%s)", dir[i].ent_type,
-             dir[i].ent_nm, dir[i].ent_sz);
-
-    mvwprintw(win, y, x, "%-*.*s", col_width - 2, col_width - 2, line_buf);
+    mvwprintw(win, y, x, "%s", dir[i]);
   }
 
   mvwprintw(win, 0, 2, "%s", path);
-  mvwprintw(win, max_y - 1, 2, "%u entries", (unsigned int)ent_cnt);
+  mvwprintw(win, max_y - 1, 2, "%u entries", (unsigned int)e_cnt);
   refresh();
   wrefresh(win);
 
@@ -65,7 +53,7 @@ int main(int argc, char **argv) {
   }
 
   delwin(win);
-  free_dir(dir, ent_cnt);
+  free_dir(dir, e_cnt);
 
   endwin();
 

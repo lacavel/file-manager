@@ -1,12 +1,10 @@
-#include "mng_core/ent_sts.h"
-#include "ent_sts_cache.h"
+#include "mng_core/e_perms_qry.h"
+#include "e_attr.h"
 
 #include <grp.h>
 #include <pwd.h>
-#include <stdint.h>
 #include <string.h>
 #include <sys/stat.h>
-#include <time.h>
 
 int get_ent_own_perms(char *own_perms_buf, const char *ent_path) {
   if (!ent_path || !own_perms_buf)
@@ -89,49 +87,4 @@ int get_ent_grp(char *grp_buf, const char *ent_path) {
   size_t len = strlen(grp->gr_name);
   memcpy(grp_buf, grp->gr_name, len + 1);
   return (int)len;
-}
-
-int get_ent_acs_tm(char *acs_tm_buf, const char *ent_path, const char *tm_fmt) {
-  if (!ent_path || !acs_tm_buf)
-    return -1;
-  const struct stat *sts = get_ent_sts(ent_path, false);
-  if (!sts)
-    return -1;
-
-  const struct tm *tm = localtime(&sts->st_atime);
-  if (!tm)
-    return -1;
-
-  return (int)strftime(acs_tm_buf, 64, tm_fmt ? tm_fmt : "%d-%m-%Y %H:%M:%S",
-                       tm);
-}
-
-int get_ent_mod_tm(char *mod_tm_buf, const char *ent_path, const char *tm_fmt) {
-  if (!ent_path || !mod_tm_buf)
-    return -1;
-  const struct stat *sts = get_ent_sts(ent_path, false);
-  if (!sts)
-    return -1;
-
-  const struct tm *tm = localtime(&sts->st_mtime);
-  if (!tm)
-    return -1;
-
-  return (int)strftime(mod_tm_buf, 64, tm_fmt ? tm_fmt : "%d-%m-%Y %H:%M:%S",
-                       tm);
-}
-
-int get_ent_chg_tm(char *chg_tm_buf, const char *ent_path, const char *tm_fmt) {
-  if (!ent_path || !chg_tm_buf)
-    return -1;
-  const struct stat *sts = get_ent_sts(ent_path, false);
-  if (!sts)
-    return -1;
-
-  const struct tm *tm = localtime(&sts->st_ctime);
-  if (!tm)
-    return -1;
-
-  return (int)strftime(chg_tm_buf, 64, tm_fmt ? tm_fmt : "%d-%m-%Y %H:%M:%S",
-                       tm);
 }
