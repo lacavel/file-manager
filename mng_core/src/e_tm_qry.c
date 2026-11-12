@@ -1,5 +1,5 @@
 #include "mng_core/e_tm_qry.h"
-#include "e_attr.h"
+#include "e_sts_qry.h"
 
 #include <sys/stat.h>
 #include <time.h>
