@@ -10,6 +10,7 @@ target_sources(
         src/e_sts_qry.c
         src/e_utils.c
         src/e_sz_qry.c
+        src/e_type_qry.c
 )
 target_include_directories(
     mng_core
