@@ -1,5 +1,56 @@
 #include "cntlr.h"
+#include "mng_core/e_qry.h"
+#include "mng_core/e_utils.h"
 #include <ncurses.h>
+#include <stdlib.h>
+#include <string.h>
+#include <sys/stat.h>
+
+static unsigned int cnt_e(char **dir_buf) {
+  unsigned int cnt = 0;
+  while (dir_buf[cnt][0] != '\0')
+    cnt++;
+  return cnt;
+}
+
+static bool load_dir(AppState *st, const char *path) {
+  char **buf = qry_dir(path);
+  if (!buf)
+    return false;
+
+  free_dir(st->dir_buf, st->ent_cnt);
+  st->dir_buf = buf;
+  snprintf(st->path, sizeof(st->path), "%s", path);
+  st->ent_cnt = cnt_e(buf);
+  st->sel = 0;
+  return true;
+}
+
+static void open_sel(AppState *st) {
+  if (st->ent_cnt == 0)
+    return;
+
+  char ent_path[PATH_MAX];
+  nav_down(ent_path, st->path, st->dir_buf[st->sel]);
+
+  struct stat sb;
+  if (stat(ent_path, &sb) != 0 || !S_ISDIR(sb.st_mode))
+    return;
+
+  load_dir(st, ent_path);
+}
+
+static void go_up(AppState *st) {
+  char parent[PATH_MAX], resolved[PATH_MAX];
+  nav_down(parent, st->path, "..");
+  if (!realpath(parent, resolved))
+    return;
+
+  if (strcmp(resolved, st->path) == 0)
+    return;
+
+  load_dir(st, resolved);
+}
 
 static void nav(AppState *st, int key, unsigned int max_rows,
                 unsigned int max_cols) {
@@ -46,6 +97,15 @@ bool cntlr_handle(AppState *st, int key, const Ui *ui) {
     return false;
   case 'i':
     st->sts_visible = !st->sts_visible;
+    break;
+  case 'L':
+  case KEY_ENTER:
+  case '\n':
+  case '\r':
+    open_sel(st);
+    break;
+  case 'H':
+    go_up(st);
     break;
   case KEY_RESIZE:
     break;

@@ -17,6 +17,8 @@ int main(int argc, char **argv) {
 
   Ui ui;
   v_init(&ui, &st);
+  v_sync(&ui, &st);
+  v_draw(&ui, &st);
 
   int ch;
   bool running = true;

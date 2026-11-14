@@ -10,7 +10,7 @@
 #include <string.h>
 
 static int sts_pnl_wd() {
-  int wd = COLS / 4;
+  int wd = COLS / 3;
   if (wd < 32)
     wd = 32;
   if (wd > COLS - 16)
@@ -25,9 +25,9 @@ void draw_sts_pnl(const Ui *ui, const AppState *st) {
   werase(ui->sts_pnl);
   box(ui->sts_pnl, 0, 0);
 
-  int max_wd = COLS / 4 - 4;
-  if (max_wd < 10)
-    max_wd = 10;
+  int max_wd = COLS / 3 - 4;
+  if (max_wd < 16)
+    max_wd = 16;
 
   char ent_path[PATH_MAX];
   nav_down(ent_path, st->path, st->dir_buf[st->sel]);
@@ -113,9 +113,11 @@ void v_sync(Ui *ui, const AppState *st) {
 
   if (st->sts_visible) {
     if (!ui->sts_pnl)
-      ui->sts_pnl = newwin(LINES - 4, sts_pnl_wd(), 2, COLS - sts_pnl_wd());
-    else
+      ui->sts_pnl = newwin(LINES - 4, sts_pnl_wd(), 2, (COLS - sts_pnl_wd()));
+    else {
       wresize(ui->sts_pnl, LINES - 4, sts_pnl_wd());
+      mvwin(ui->sts_pnl, 2, (COLS - sts_pnl_wd()));
+    }
   }
   const char *ver = "mng v1.0.0";
   mvwprintw(ui->ver_pnl, 0, COLS - (int)strlen(ver) - 1, "%s", ver);
@@ -123,11 +125,8 @@ void v_sync(Ui *ui, const AppState *st) {
   ui->max_rows = getmaxy(ui->dir_pnl) - 2;
   ui->max_cols = (getmaxx(ui->dir_pnl) - 2) / ui->col_wd;
 
-  wrefresh(ui->sts_pnl);
-  wrefresh(ui->dir_pnl);
-  wrefresh(ui->ver_pnl);
-  // clear();
-  // refresh();
+  clear();
+  refresh();
 }
 
 void v_draw(const Ui *ui, const AppState *st) {
