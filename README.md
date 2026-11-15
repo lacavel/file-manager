@@ -18,4 +18,4 @@ Available options are depicted in `OPTIONS.md`.
 
 ## Author
 
-- **deharolacavel**
+- **lacavel**
