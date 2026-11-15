@@ -1,15 +1,11 @@
 #include "mng_core/e_perms_qry.h"
+#include "comp_mode.h"
 #include "e_sts_qry.h"
 
 #include <grp.h>
 #include <pwd.h>
 #include <string.h>
 #include <sys/stat.h>
-
-#define EYE_ICON " "
-#define EYE_SHUT_ICON " "
-#define EDIT_ICON " "
-#define EXEC_ICON " "
 
 int get_ent_own_perms(char *own_perms_buf, const char *ent_path) {
   if (!ent_path || !own_perms_buf)
@@ -21,9 +17,9 @@ int get_ent_own_perms(char *own_perms_buf, const char *ent_path) {
   mode_t mode = sts->st_mode & 07777;
   char *p = own_perms_buf;
 
-  p = stpcpy(p, (mode & S_IRUSR) ? EYE_ICON : EYE_SHUT_ICON);
-  p = stpcpy(p, (mode & S_IWUSR) ? EDIT_ICON : "  ");
-  p = stpcpy(p, (mode & S_IXUSR) ? EXEC_ICON : "  ");
+  p = stpcpy(p, (mode & S_IRUSR) ? CAN_R_ICON : CAN_NOT_R_ICON);
+  p = stpcpy(p, (mode & S_IWUSR) ? CAN_W_ICON : CAN_NOT_W_ICON);
+  p = stpcpy(p, (mode & S_IXUSR) ? CAN_EXEC_ICON : CAN_NOT_EXEC_ICON);
 
   return p - own_perms_buf;
 }
@@ -38,9 +34,9 @@ int get_ent_grp_perms(char *grp_perms_buf, const char *ent_path) {
   mode_t mode = sts->st_mode & 07777;
   char *p = grp_perms_buf;
 
-  p = stpcpy(p, (mode & S_IRGRP) ? EYE_ICON : EYE_SHUT_ICON);
-  p = stpcpy(p, (mode & S_IWGRP) ? EDIT_ICON : "  ");
-  p = stpcpy(p, (mode & S_IXGRP) ? EXEC_ICON : "  ");
+  p = stpcpy(p, (mode & S_IRGRP) ? CAN_R_ICON : CAN_NOT_R_ICON);
+  p = stpcpy(p, (mode & S_IWGRP) ? CAN_W_ICON : CAN_NOT_W_ICON);
+  p = stpcpy(p, (mode & S_IXGRP) ? CAN_EXEC_ICON : CAN_NOT_EXEC_ICON);
 
   return p - grp_perms_buf;
 }
@@ -55,9 +51,9 @@ int get_ent_oth_perms(char *oth_perms_buf, const char *ent_path) {
   mode_t mode = sts->st_mode & 07777;
   char *p = oth_perms_buf;
 
-  p = stpcpy(p, (mode & S_IROTH) ? EYE_ICON : EYE_SHUT_ICON);
-  p = stpcpy(p, (mode & S_IWOTH) ? EDIT_ICON : "  ");
-  p = stpcpy(p, (mode & S_IXOTH) ? EXEC_ICON : "  ");
+  p = stpcpy(p, (mode & S_IROTH) ? CAN_R_ICON : CAN_NOT_R_ICON);
+  p = stpcpy(p, (mode & S_IWOTH) ? CAN_W_ICON : CAN_NOT_W_ICON);
+  p = stpcpy(p, (mode & S_IXOTH) ? CAN_EXEC_ICON : CAN_NOT_EXEC_ICON);
 
   return p - oth_perms_buf;
 }

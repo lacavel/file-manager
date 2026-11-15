@@ -11,5 +11,13 @@ else()
     add_compile_options(-O3)
 endif()
 
+option(ENABLE_COMP_MODE "Disable Nerd Font icons." OFF)
+
+if(ENABLE_COMP_MODE)
+    add_compile_definitions(COMP_MODE=1)
+else()
+    add_compile_definitions(COMP_MODE=0)
+endif()
+
 add_subdirectory(mng_core)
 add_subdirectory(mng)

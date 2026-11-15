@@ -1,8 +1,10 @@
 #include "mng_core/e_qry.h"
+#include "mng_core/e_type_qry.h"
 
 #include <dirent.h>
 #include <errno.h>
 #include <limits.h>
+#include <stdbool.h>
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -10,99 +12,37 @@
 #include <sys/stat.h>
 #include <unistd.h>
 
-ssize_t pop_dir(char ***dir_buf, const char *dir_path) {
-  if (!dir_buf || !dir_path)
-    return -1;
-
-  size_t ent_cnt = 0, cpty = 16;
-
-  DIR *dir = opendir(dir_path);
-  if (!dir)
-    return -1;
-
-  char **buf = malloc(cpty * sizeof(*buf));
-  if (!buf)
-    goto err;
-
-  struct dirent *e;
-
-  for (;;) {
-    errno = 0;
-    e = readdir(dir);
-
-    if (!e) {
-      if (errno != 0)
-        goto err;
-      break;
-    }
-    if (strcmp(e->d_name, ".") == 0 || strcmp(e->d_name, "..") == 0 ||
-        strcmp(e->d_name, "lost+found") == 0)
-      continue;
-
-    if (ent_cnt == cpty) {
-      if (cpty > SIZE_MAX / 2)
-        goto err;
-
-      cpty *= 2;
-      if (cpty > SIZE_MAX / sizeof(*buf))
-        goto err;
-
-      char **buf_tmp = realloc(buf, cpty * sizeof(*buf));
-      if (!buf_tmp)
-        goto err;
-      buf = buf_tmp;
-    }
-
-    const size_t ent_nm_len = strlen(e->d_name);
-
-    buf[ent_cnt] = malloc(ent_nm_len + 1);
-    if (!buf[ent_cnt])
-      goto err;
-    memcpy(buf[ent_cnt], e->d_name, ent_nm_len + 1);
-
-    ent_cnt++;
-  }
-
-  {
-    const int cl = closedir(dir);
-    dir = NULL;
-
-    if (cl == -1)
-      goto err;
-  }
-
-  *dir_buf = buf;
-  return ent_cnt;
-
-err:
-  if (dir)
-    closedir(dir);
-
-  if (buf)
-    free_dir(buf, ent_cnt);
-  return -1;
-}
-
-void free_dir(char **dir_buf, size_t ent_cnt) {
+void free_dir(E **dir_buf, size_t ent_cnt) {
   if (!dir_buf)
     return;
 
-  for (size_t i = 0; i < ent_cnt; i++)
-    free(dir_buf[i]);
+  for (size_t i = 0; i < ent_cnt; i++) {
+    if (dir_buf[i]) {
+      free(dir_buf[i]->ent_nm);
+      free(dir_buf[i]);
+    }
+  }
+
+  if (dir_buf[ent_cnt]) {
+    free(dir_buf[ent_cnt]->ent_nm);
+    free(dir_buf[ent_cnt]);
+  }
+
   free(dir_buf);
 }
 
-char **qry_dir(const char *dir_path) {
+E **qry_dir(const char *dir_path) {
   if (!dir_path)
     return NULL;
 
-  size_t ent_cnt = 0, cpty = 16;
+  size_t ent_cnt = 0;
+  size_t cpty = 16;
 
   DIR *dir = opendir(dir_path);
   if (!dir)
     return NULL;
 
-  char **dir_buf = malloc(cpty * sizeof(*dir_buf));
+  E **dir_buf = calloc(cpty, sizeof(*dir_buf));
   if (!dir_buf)
     goto err;
 
@@ -117,41 +57,87 @@ char **qry_dir(const char *dir_path) {
         goto err;
       break;
     }
+
     if (strcmp(e->d_name, ".") == 0 || strcmp(e->d_name, "..") == 0 ||
         strcmp(e->d_name, "lost+found") == 0)
       continue;
 
-    if (ent_cnt == cpty) {
+    if (ent_cnt >= cpty - 1) {
       if (cpty > SIZE_MAX / 2)
         goto err;
 
-      cpty *= 2;
-      if (cpty > SIZE_MAX / sizeof(*dir_buf))
+      size_t new_cpty = cpty * 2;
+
+      if (new_cpty > SIZE_MAX / sizeof(*dir_buf))
         goto err;
 
-      char **dir_buf_tmp = realloc(dir_buf, cpty * sizeof(*dir_buf));
-      if (!dir_buf_tmp)
+      E **tmp = realloc(dir_buf, new_cpty * sizeof(*dir_buf));
+      if (!tmp)
         goto err;
-      dir_buf = dir_buf_tmp;
+
+      dir_buf = tmp;
+
+      memset(dir_buf + cpty, 0, (new_cpty - cpty) * sizeof(*dir_buf));
+
+      cpty = new_cpty;
     }
 
-    const size_t ent_nm_len = strlen(e->d_name);
-
-    dir_buf[ent_cnt] = malloc(ent_nm_len + 1);
-    if (!dir_buf[ent_cnt])
+    E *ent = calloc(1, sizeof(*ent));
+    if (!ent)
       goto err;
-    memcpy(dir_buf[ent_cnt], e->d_name, ent_nm_len + 1);
+
+    dir_buf[ent_cnt] = ent;
+
+    size_t name_len = strlen(e->d_name);
+
+    ent->ent_nm = malloc(name_len + 1);
+    if (!ent->ent_nm)
+      goto err;
+
+    memcpy(ent->ent_nm, e->d_name, name_len + 1);
+
+    size_t path_len = strlen(dir_path);
+    bool has_slash = path_len > 0 && dir_path[path_len - 1] == '/';
+
+    if (path_len > SIZE_MAX - name_len - 2)
+      goto err;
+
+    size_t full_len = path_len + name_len + (has_slash ? 1 : 2);
+
+    char *path = malloc(full_len);
+    if (!path)
+      goto err;
+
+    snprintf(path, full_len, "%s%s%s", dir_path, has_slash ? "" : "/",
+             e->d_name);
+
+    char *type = get_ent_type(path);
+    free(path);
+
+    if (!type)
+      goto err;
+
+    size_t type_len = strlen(type);
+
+    if (type_len >= sizeof(ent->ent_type))
+      goto err;
+
+    memcpy(ent->ent_type, type, type_len + 1);
 
     ent_cnt++;
   }
 
-  dir_buf[ent_cnt] = malloc(sizeof(char));
+  // Allocate sentinel.
+  dir_buf[ent_cnt] = calloc(1, sizeof(E));
   if (!dir_buf[ent_cnt])
     goto err;
-  dir_buf[ent_cnt][0] = '\0';
+
+  dir_buf[ent_cnt]->ent_nm = calloc(1, 1);
+  if (!dir_buf[ent_cnt]->ent_nm)
+    goto err;
 
   {
-    const int cl = closedir(dir);
+    int cl = closedir(dir);
     dir = NULL;
 
     if (cl == -1)
@@ -164,7 +150,8 @@ err:
   if (dir)
     closedir(dir);
 
-  if (dir_buf)
-    free_dir(dir_buf, ent_cnt);
+  free_dir(dir_buf,
+           ent_cnt + (dir_buf && ent_cnt < cpty && dir_buf[ent_cnt] != NULL));
+
   return NULL;
 }

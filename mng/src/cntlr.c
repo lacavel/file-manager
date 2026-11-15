@@ -6,15 +6,15 @@
 #include <string.h>
 #include <sys/stat.h>
 
-static unsigned int cnt_e(char **dir_buf) {
+static unsigned int cnt_e(E **dir_buf) {
   unsigned int cnt = 0;
-  while (dir_buf[cnt][0] != '\0')
+  while (dir_buf[cnt]->ent_nm[0] != '\0')
     cnt++;
   return cnt;
 }
 
 static bool load_dir(AppState *st, const char *path) {
-  char **buf = qry_dir(path);
+  E **buf = qry_dir(path);
   if (!buf)
     return false;
 
@@ -31,7 +31,7 @@ static void open_sel(AppState *st) {
     return;
 
   char ent_path[PATH_MAX];
-  nav_down(ent_path, st->path, st->dir_buf[st->sel]);
+  nav_down(ent_path, st->path, st->dir_buf[st->sel]->ent_nm);
 
   struct stat sb;
   if (stat(ent_path, &sb) != 0 || !S_ISDIR(sb.st_mode))

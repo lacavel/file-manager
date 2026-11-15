@@ -1,12 +1,8 @@
 #include "mng_core/e_type_qry.h"
+#include "comp_mode.h"
 #include "e_sts_qry.h"
 #include <string.h>
 #include <sys/stat.h>
-
-#define FILE_ICON " "
-#define DIR_ICON " "
-#define SYMLINK_TO_FILE_ICON " "
-#define SYMLINK_TO_DIR_ICON " "
 
 char *get_ent_type(const char *ent_path) {
   if (!ent_path)

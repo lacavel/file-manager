@@ -30,11 +30,11 @@ void draw_sts_pnl(const Ui *ui, const AppState *st) {
     max_wd = 16;
 
   char ent_path[PATH_MAX];
-  nav_down(ent_path, st->path, st->dir_buf[st->sel]);
+  nav_down(ent_path, st->path, st->dir_buf[st->sel]->ent_nm);
 
   int row = 1;
 
-  mvwprintw(ui->sts_pnl, 0, 2, "%.*s", max_wd, st->dir_buf[st->sel]);
+  mvwprintw(ui->sts_pnl, 0, 2, "%.*s", max_wd, st->dir_buf[st->sel]->ent_nm);
 
   mvwprintw(ui->sts_pnl, row++, 2, "Times:");
   char tm_buf[128];
@@ -51,7 +51,7 @@ void draw_sts_pnl(const Ui *ui, const AppState *st) {
 
   row++;
   mvwprintw(ui->sts_pnl, row++, 2, "Ownership:");
-  char perms_buf[12], own_buf[64], grp_buf[64];
+  char own_buf[64], grp_buf[64], perms_buf[12];
   if (get_ent_own(own_buf, ent_path) != -1)
     mvwprintw(ui->sts_pnl, row++, 2, "Owner: %.*s", max_wd, own_buf);
   if (get_ent_grp(grp_buf, ent_path) != -1)
@@ -98,7 +98,7 @@ void v_init(Ui *ui, const AppState *st) {
 void v_sync(Ui *ui, const AppState *st) {
   unsigned int col_wd = 0;
   for (unsigned int i = 0; i < st->ent_cnt; i++) {
-    unsigned int len = strlen(st->dir_buf[i]);
+    unsigned int len = strlen(st->dir_buf[i]->ent_nm);
     if (len > col_wd)
       col_wd = len;
   }
@@ -139,7 +139,8 @@ void v_draw(const Ui *ui, const AppState *st) {
     unsigned int col = idx / ui->max_rows;
     if (idx == st->sel)
       wattron(ui->dir_pnl, A_REVERSE);
-    mvwprintw(ui->dir_pnl, row, 2 + (col * ui->col_wd), "%s", st->dir_buf[idx]);
+    mvwprintw(ui->dir_pnl, row, 2 + (col * ui->col_wd), "%s%s",
+              st->dir_buf[idx]->ent_type, st->dir_buf[idx]->ent_nm);
     wattroff(ui->dir_pnl, A_REVERSE);
   }
   mvwprintw(ui->dir_pnl, ui->max_rows + 1, 2, "%u entries", st->ent_cnt);

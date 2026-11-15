@@ -1,4 +1,3 @@
-#include "mng_core/e_qry.h"
 #include "mng_core/e_utils.h"
 
 #include "cntlr.h"
@@ -12,12 +11,11 @@ int main(int argc, char **argv) {
   st.dir_buf = qry_dir(st.path);
   if (!st.dir_buf)
     return 1;
-  while (st.dir_buf[st.ent_cnt][0] != '\0')
+  while (st.dir_buf[st.ent_cnt]->ent_nm[0] != '\0')
     st.ent_cnt++;
 
   Ui ui;
   v_init(&ui, &st);
-  v_sync(&ui, &st);
   v_draw(&ui, &st);
 
   int ch;
