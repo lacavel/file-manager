@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 4.4.2)
-project(file-manager VERSION 1.0.0 LANGUAGES C)
+project(file-manager VERSION 1.0.0 LANGUAGES C CXX)
 
 add_compile_options(-Wall -Wextra -g)
 if(CMAKE_BUILD_TYPE STREQUAL "Debug")

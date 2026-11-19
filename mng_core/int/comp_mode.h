@@ -13,6 +13,7 @@
 #define DIR_ICON "/ "
 #define SYMLINK_TO_FILE_ICON "@ "
 #define SYMLINK_TO_DIR_ICON "@ "
+
 #else
 
 #define CAN_R_ICON " "

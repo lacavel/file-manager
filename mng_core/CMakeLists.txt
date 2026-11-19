@@ -1,16 +1,14 @@
 add_library(mng_core STATIC)
 
-target_compile_features(mng_core PRIVATE c_std_17)
+target_compile_features(mng_core PRIVATE cxx_std_20)
 target_sources(
     mng_core
     PRIVATE
-        src/e_qry.c
-        src/e_perms_qry.c
-        src/e_tm_qry.c
-        src/e_sts_qry.c
-        src/e_utils.c
-        src/e_sz_qry.c
-        src/e_type_qry.c
+        src/dir_qry.cpp
+        src/ent_perms_qry.cpp
+        src/ent_sz_qry.cpp
+        src/ent_ts_qry.cpp
+        src/ent_sys_qry.cpp
 )
 target_include_directories(
     mng_core
