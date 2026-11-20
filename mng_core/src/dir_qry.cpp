@@ -32,7 +32,8 @@ static bool ign(std::string_view nm) {
   return nm == "." || nm == ".." || nm == "lost+found";
 }
 
-std::vector<mng_core::Ent> qry_dir(const std::filesystem::path &dir_path) {
+std::vector<mng_core::Ent>
+mng_core::qry_dir(const std::filesystem::path &dir_path) {
   std::unique_ptr<DIR, int (*)(DIR *)> dir(opendir(dir_path.c_str()),
                                            &closedir);
   if (!dir)

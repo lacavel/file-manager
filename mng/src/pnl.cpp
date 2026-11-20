@@ -8,10 +8,8 @@ struct mng::PnlImpl {
 mng::Pnl::Pnl(unsigned int x, unsigned int y, unsigned int wd, unsigned int ht)
     : pimpl(std::make_unique<PnlImpl>()) {
   pimpl->pnl = newwin(ht, wd, y, x);
-  if (pimpl->pnl) {
+  if (pimpl->pnl)
     keypad(pimpl->pnl, TRUE);
-    box(pimpl->pnl, 0, 0);
-  }
 }
 
 mng::Pnl::~Pnl() {
