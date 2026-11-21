@@ -26,17 +26,17 @@ static std::string fmt_timestamp(std::time_t ts, std::string_view fmt) {
   throw std::length_error("timestamp format exceeded 4096 bytes");
 }
 
-std::string get_ent_acs_ts(const std::filesystem::path &ent_path,
-                           std::string_view tm_fmt) {
+std::string mng_core::get_ent_acs_ts(const std::filesystem::path &ent_path,
+                                     std::string_view tm_fmt) {
   return fmt_timestamp(get_ent_sys(ent_path, false).st_atime, tm_fmt);
 }
 
-std::string get_ent_mod_ts(const std::filesystem::path &ent_path,
-                           std::string_view tm_fmt) {
+std::string mng_core::get_ent_mod_ts(const std::filesystem::path &ent_path,
+                                     std::string_view tm_fmt) {
   return fmt_timestamp(get_ent_sys(ent_path, false).st_mtime, tm_fmt);
 }
 
-std::string get_ent_chg_ts(const std::filesystem::path &ent_path,
-                           std::string_view tm_fmt) {
+std::string mng_core::get_ent_chg_ts(const std::filesystem::path &ent_path,
+                                     std::string_view tm_fmt) {
   return fmt_timestamp(get_ent_sys(ent_path, false).st_ctime, tm_fmt);
 }

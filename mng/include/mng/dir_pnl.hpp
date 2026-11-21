@@ -1,6 +1,6 @@
 #pragma once
+#include "mng/pnl.hpp"
 #include "mng_core/dir_qry.hpp"
-#include "pnl.hpp"
 
 #include <filesystem>
 
@@ -12,9 +12,10 @@ private:
   unsigned int cur_idx = 0;
 
 public:
-  DirPnl(unsigned int x, unsigned int y, unsigned int wd, unsigned int ht);
+  DirPnl(std::filesystem::path dir_path);
   void prt() override;
-  void set_dir(const std::filesystem::path &dir_path);
+  void set_dir_path(std::filesystem::path dir_path);
+  std::filesystem::path get_curr_path() const;
   void hndl_in(int key);
 };
 } // namespace mng

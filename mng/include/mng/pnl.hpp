@@ -22,7 +22,10 @@ public:
   Pnl &operator=(const Pnl &) = delete;
 
   void resize(unsigned int x, unsigned int y, unsigned int wd, unsigned int ht);
+  void set_vis(bool vis);
+  bool get_vis();
+  static void rfsh();
+
   virtual void prt() = 0;
-  void rfsh();
 };
 } // namespace mng

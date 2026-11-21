@@ -1,9 +1,11 @@
-#include "dir_pnl.hpp"
+#include "mng/dir_pnl.hpp"
 #include <ncurses.h>
 
-mng::DirPnl::DirPnl(unsigned int x, unsigned int y, unsigned int wd,
-                    unsigned int ht)
-    : Pnl(x, y, wd, ht) {}
+mng::DirPnl::DirPnl(std::filesystem::path dir_path) : Pnl(0, 0, COLS, LINES) {
+  this->dir_path = dir_path;
+  this->dir_buf = mng_core::qry_dir(dir_path);
+  this->cur_idx = 0;
+}
 
 void mng::DirPnl::prt() {
   auto *dir_pnl = static_cast<WINDOW *>(get_hndl());
@@ -64,18 +66,25 @@ void mng::DirPnl::hndl_in(int key) {
     if (err)
       break;
 
-    set_dir(canon);
+    set_dir_path(canon);
     break;
   }
   case 'h':
   case KEY_BACKSPACE: {
-    set_dir(dir_path.parent_path());
+    set_dir_path(dir_path.parent_path());
     break;
   } break;
   }
 }
-void mng::DirPnl::set_dir(const std::filesystem::path &dir_path) {
+
+void mng::DirPnl::set_dir_path(std::filesystem::path dir_path) {
   this->dir_buf = mng_core::qry_dir(dir_path);
   this->dir_path = dir_path;
   this->cur_idx = 0;
+}
+
+std::filesystem::path mng::DirPnl::get_curr_path() const {
+  if (dir_buf.empty() || cur_idx > dir_buf.size())
+    return dir_path;
+  return dir_path / dir_buf[cur_idx].ent_nm;
 }

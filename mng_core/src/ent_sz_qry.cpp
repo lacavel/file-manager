@@ -4,7 +4,8 @@
 #include <array>
 #include <format>
 
-std::string get_ent_sz(const std::filesystem::path &ent_path, bool fmt) {
+std::string mng_core::get_ent_sz(const std::filesystem::path &ent_path,
+                                 bool fmt) {
   const struct stat st = get_ent_sys(ent_path, true);
 
   if (!fmt || st.st_size < 1024)

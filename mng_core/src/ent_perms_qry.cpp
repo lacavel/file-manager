@@ -17,22 +17,22 @@ static std::string fmt_perms(mode_t mode, mode_t r, mode_t w, mode_t x) {
   return s;
 }
 
-std::string get_ent_own_perms(const std::filesystem::path &ent_path) {
+std::string mng_core::get_ent_own_perms(const std::filesystem::path &ent_path) {
   return fmt_perms(get_ent_sys(ent_path, false).st_mode, S_IRUSR, S_IWUSR,
                    S_IXUSR);
 }
 
-std::string get_ent_grp_perms(const std::filesystem::path &ent_path) {
+std::string mng_core::get_ent_grp_perms(const std::filesystem::path &ent_path) {
   return fmt_perms(get_ent_sys(ent_path, false).st_mode, S_IRGRP, S_IWGRP,
                    S_IXGRP);
 }
 
-std::string get_ent_oth_perms(const std::filesystem::path &ent_path) {
+std::string mng_core::get_ent_oth_perms(const std::filesystem::path &ent_path) {
   return fmt_perms(get_ent_sys(ent_path, false).st_mode, S_IROTH, S_IWOTH,
                    S_IXOTH);
 }
 
-std::string get_ent_own(const std::filesystem::path &ent_path) {
+std::string mng_core::get_ent_own(const std::filesystem::path &ent_path) {
   const struct stat st = get_ent_sys(ent_path, false);
   errno = 0;
   const struct passwd *pw = getpwuid(st.st_uid);
@@ -46,7 +46,7 @@ std::string get_ent_own(const std::filesystem::path &ent_path) {
   return pw->pw_name;
 }
 
-std::string get_ent_grp(const std::filesystem::path &ent_path) {
+std::string mng_core::get_ent_grp(const std::filesystem::path &ent_path) {
   const struct stat st = get_ent_sys(ent_path, false);
   errno = 0;
   const struct group *gr = getgrgid(st.st_gid);
