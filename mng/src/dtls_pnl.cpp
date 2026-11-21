@@ -18,11 +18,13 @@ void mng::DtlsPnl::prt() {
   mvwprintw(dtls_pnl, row, left_pad, "%s",
             ent_path.filename().string().c_str());
 
+  const std::string sz_buf = mng_core::get_ent_sz(ent_path, false),
+                    sz_buf_fmt = mng_core::get_ent_sz(ent_path, true);
   row++;
-  mvwprintw(dtls_pnl, row, left_pad, "Size: %s (%s)",
-            mng_core::get_ent_sz(ent_path, false).c_str(),
-            mng_core::get_ent_sz(ent_path, true).c_str());
-
+  mvwprintw(dtls_pnl, row, left_pad, "%s",
+            ("Size " + sz_buf +
+             ((sz_buf != sz_buf_fmt) ? " (" + sz_buf_fmt + ")" : ""))
+                .c_str());
   row += 2;
   mvwprintw(dtls_pnl, row, left_pad, "Last accessed: %s",
             mng_core::get_ent_acs_ts(ent_path, "%d-%m-%Y %H:%M:%S").c_str());
