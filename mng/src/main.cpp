@@ -1,3 +1,4 @@
+#include "mng/args.h"
 #include "mng/dir_pnl.hpp"
 #include "mng/dtls_pnl.hpp"
 #include <filesystem>
@@ -17,6 +18,8 @@ static void upd_lyt(mng::DirPnl &dir_pnl, mng::DtlsPnl &dtls_pnl) {
 }
 
 int main(int argc, char **argv) {
+  Args args;
+  parse_args(argc, argv, &args);
   setlocale(LC_ALL, "");
   initscr();
   noecho();
@@ -25,8 +28,9 @@ int main(int argc, char **argv) {
   refresh();
 
   {
-    mng::DirPnl dir_pnl(argc == 2 && argv[1] ? argv[1]
-                                             : std::filesystem::current_path());
+    mng::DirPnl dir_pnl(args.init_path != NULL
+                            ? args.init_path
+                            : std::filesystem::current_path());
     mng::DtlsPnl dtls_pnl(dir_pnl.get_curr_path());
     dtls_pnl.set_vis(false);
 

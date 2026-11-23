@@ -2,10 +2,10 @@ add_executable(mng)
 
 find_package(Curses REQUIRED)
 
-target_compile_features(mng PRIVATE cxx_std_20)
+target_compile_features(mng PRIVATE c_std_17 cxx_std_20)
 target_sources(
     mng
-    PRIVATE src/main.cpp src/pnl.cpp src/dir_pnl.cpp src/dtls_pnl.cpp
+    PRIVATE src/main.cpp src/args.c src/pnl.cpp src/dir_pnl.cpp src/dtls_pnl.cpp
 )
 
 target_include_directories(
