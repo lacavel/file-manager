@@ -1,4 +1,4 @@
-#include "mng/args.h"
+#include "args.h"
 #include "mng/dir_pnl.hpp"
 #include "mng/dtls_pnl.hpp"
 #include <filesystem>
@@ -19,7 +19,9 @@ static void upd_lyt(mng::DirPnl &dir_pnl, mng::DtlsPnl &dtls_pnl) {
 
 int main(int argc, char **argv) {
   Args args;
-  parse_args(argc, argv, &args);
+  if (!parse_args(argc, argv, &args))
+    return -1;
+
   setlocale(LC_ALL, "");
   initscr();
   noecho();
