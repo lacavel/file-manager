@@ -1,6 +1,6 @@
 # mng
 
-TUI file manager written in C.
+TUI file manager written in C++.
 
 ## Dependencies
 

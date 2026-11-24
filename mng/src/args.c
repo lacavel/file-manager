@@ -1,4 +1,4 @@
-#include "mng/args.h"
+#include "args.h"
 
 #include <getopt.h>
 #include <stdio.h>
