@@ -2,5 +2,7 @@
 !.gitignore
 
 !toolchains/
+!deps/
 
+!*.cmake
 !*/*.cmake

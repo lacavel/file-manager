@@ -1,12 +1,12 @@
 #include "args.h"
-#include "mng/dir_pnl.hpp"
-#include "mng/dtls_pnl.hpp"
+#include "mng_gfx/dir_pnl.hpp"
+#include "mng_gfx/dtls_pnl.hpp"
 #include <filesystem>
 
 #include <locale.h>
 #include <ncurses.h>
 
-static void upd_lyt(mng::DirPnl &dir_pnl, mng::DtlsPnl &dtls_pnl) {
+static void upd_lyt(mng_gfx::DirPnl &dir_pnl, mng_gfx::DtlsPnl &dtls_pnl) {
   if (dtls_pnl.get_vis()) {
     dir_pnl.resize(0, 0, COLS - (COLS / 3), LINES);
     dtls_pnl.resize(COLS - (COLS / 3), 0, COLS / 3, LINES);
@@ -30,14 +30,14 @@ int main(int argc, char **argv) {
   refresh();
 
   {
-    mng::DirPnl dir_pnl(args.init_path != NULL
-                            ? args.init_path
-                            : std::filesystem::current_path());
-    mng::DtlsPnl dtls_pnl(dir_pnl.get_curr_path());
+    mng_gfx::DirPnl dir_pnl(args.init_path != NULL
+                                ? args.init_path
+                                : std::filesystem::current_path());
+    mng_gfx::DtlsPnl dtls_pnl(dir_pnl.get_curr_path());
     dtls_pnl.set_vis(false);
 
     upd_lyt(dir_pnl, dtls_pnl);
-    mng::Pnl::rfsh();
+    mng_gfx::Pnl::rfsh();
 
     int key;
     while ((key = getch()) != 'q') {
@@ -54,7 +54,7 @@ int main(int argc, char **argv) {
       }
       dtls_pnl.set_ent(dir_pnl.get_curr_path());
       upd_lyt(dir_pnl, dtls_pnl);
-      mng::Pnl::rfsh();
+      mng_gfx::Pnl::rfsh();
     }
   }
   endwin();

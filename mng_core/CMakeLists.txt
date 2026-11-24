@@ -15,3 +15,4 @@ target_include_directories(
     PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
     PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/int
 )
+target_link_libraries(mng_core PRIVATE mng_c)
