@@ -9,8 +9,7 @@ static void print_usage(const char *arg0) {
   printf("Usage: %s [OPTION] <PATH>\n"
          "\n"
          "Options:\n"
-         "  -h, --help\t\tShow this help message and exit.\n"
-         "  -v, --version\tPrint version.\n",
+         "  -h, --help\t\tShow this help message and exit.\n",
          arg0);
 }
 
