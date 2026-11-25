@@ -9,7 +9,7 @@ else()
     add_compile_definitions(COMP_MODE=0)
 endif()
 
-include(cmake/c.cmake)
+include(cmake/strict_c.cmake)
 include(cmake/deps/ncurses.cmake)
 
 add_subdirectory(mng_core)

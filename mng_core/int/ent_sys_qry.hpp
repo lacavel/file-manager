@@ -1,5 +1,14 @@
 #pragma once
-#include <filesystem>
+
+#include "mng_core/ent_qry.hpp"
+
 #include <sys/stat.h>
 
-struct stat get_ent_sys(const std::filesystem::path &ent_path, bool flw);
+namespace mng_core {
+
+EntStat conv_ent_sys(const struct stat &st);
+
+EntStat qry_ent_at(int fd, const char *nm, std::error_code &err,
+                   LnkMode mode = LnkMode::NoFollow);
+
+} // namespace mng_core

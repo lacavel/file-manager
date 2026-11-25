@@ -1,62 +1,42 @@
-#include "args.h"
-#include "mng_gfx/dir_pnl.hpp"
-#include "mng_gfx/dtls_pnl.hpp"
-#include <filesystem>
+#include "mng_gfx/gfx.hpp"
+#include "mng_gfx/pnl.hpp"
 
-#include <locale.h>
-#include <ncurses.h>
+#include <chrono>
+#include <exception>
+#include <iostream>
+#include <thread>
 
-static void upd_lyt(mng_gfx::DirPnl &dir_pnl, mng_gfx::DtlsPnl &dtls_pnl) {
-  if (dtls_pnl.get_vis()) {
-    dir_pnl.resize(0, 0, COLS - (COLS / 3), LINES);
-    dtls_pnl.resize(COLS - (COLS / 3), 0, COLS / 3, LINES);
-    dtls_pnl.prt();
-  } else
-    dir_pnl.resize(0, 0, COLS, LINES);
+int main() {
+  try {
+    mng_gfx::Session gfx;
 
-  dir_pnl.prt();
-}
+    mng_gfx::Pnl pnl(0, 0, mng_gfx::get_wd(), mng_gfx::get_ht());
 
-int main(int argc, char **argv) {
-  Args args;
-  if (!parse_args(argc, argv, &args))
-    return -1;
+    pnl.set_title("mng_gfx");
+    pnl.set_footer("Canvas test");
 
-  setlocale(LC_ALL, "");
-  initscr();
-  noecho();
-  curs_set(0);
-  keypad(stdscr, TRUE);
-  refresh();
+    auto canvas = pnl.prt();
 
-  {
-    mng_gfx::DirPnl dir_pnl(args.init_path != NULL
-                                ? args.init_path
-                                : std::filesystem::current_path());
-    mng_gfx::DtlsPnl dtls_pnl(dir_pnl.get_curr_path());
-    dtls_pnl.set_vis(false);
+    canvas.prt(0, 0, "Normal text");
 
-    upd_lyt(dir_pnl, dtls_pnl);
-    mng_gfx::Pnl::rfsh();
+    canvas.prt(0, 2, "Bold text", mng_gfx::Attr::Bold);
 
-    int key;
-    while ((key = getch()) != 'q') {
-      switch (key) {
-      case 'i':
-        if (dtls_pnl.get_vis())
-          dtls_pnl.set_vis(false);
-        else
-          dtls_pnl.set_vis(true);
-        break;
-      default:
-        dir_pnl.hndl_in(key);
-        break;
-      }
-      dtls_pnl.set_ent(dir_pnl.get_curr_path());
-      upd_lyt(dir_pnl, dtls_pnl);
-      mng_gfx::Pnl::rfsh();
-    }
+    canvas.prt(0, 3, "Dim text", mng_gfx::Attr::Dim);
+
+    canvas.prt(0, 4, "Selected entry", mng_gfx::Attr::Reverse);
+
+    canvas.prt(0, 5, "Underlined text", mng_gfx::Attr::Underline);
+
+    canvas.prt(0, 7, "Unicode: café, 文件");
+
+    mng_gfx::rfsh();
+
+    std::this_thread::sleep_for(std::chrono::seconds(5));
+
+  } catch (const std::exception &err) {
+    std::cerr << err.what() << '\n';
+    return 1;
   }
-  endwin();
+
   return 0;
 }
