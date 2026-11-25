@@ -1,6 +1,6 @@
 add_library(mng_core STATIC)
 
-target_compile_features(mng_core PRIVATE cxx_std_20)
+target_compile_features(mng_core PUBLIC cxx_std_20)
 target_sources(
     mng_core
     PRIVATE src/dir_qry.cpp src/ent_qry.cpp src/ent_sys_qry.cpp src/id_qry.cpp
