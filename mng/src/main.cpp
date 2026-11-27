@@ -36,8 +36,10 @@ int main(int argc, char **argv) {
     while (st.running) {
       const int key = mng_gfx::get_key();
 
-      mng::hndl_in(st, key);
+      const auto ht = dir_pnl.get_ht();
+      const auto col_ht = ht > 2 ? ht - 2 : 0;
 
+      mng::hndl_in(st, key, col_ht);
       if (st.running)
         mng::prt_view(dir_pnl, dtls_pnl, st);
     }

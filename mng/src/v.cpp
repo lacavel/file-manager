@@ -49,63 +49,67 @@ static std::string fmt_id(const std::optional<EntId> &id, bool usr) {
   return std::to_string(*id);
 }
 
-static TblData mk_dtls_data(const Ent &ent) {
-  TblData dta;
-
-  dta.lyt = TblLyt::Grid;
-  dta.col_gap = 1;
-
-  const auto add = [&dta](std::string label, std::string val) {
-    dta.rows.push_back({{std::move(label), Attr::Bold}, {std::move(val)}});
+static void prt_dtls(Canvas &canvas, const Ent &ent) {
+  using P = EntPerms;
+  const auto ht = canvas.get_ht();
+  if (!ht || !canvas.get_wd())
+    return;
+  unsigned int y = 0;
+  const auto body_ht = ent.st ? (ht >= 2 ? ht - 2 : 0) : ht;
+  const auto add = [&](std::string_view txt, Attr attr = Attr::Normal) {
+    if (y < body_ht)
+      canvas.prt(0, y++, txt, attr);
   };
 
-  const auto sep = [&dta]() { dta.rows.emplace_back(); };
+  const auto sep = [&]() {
+    if (y < body_ht)
+      ++y;
+  };
 
-  add("Type:", std::string(fmt_type(ent.type)));
+  add(fmt_type(ent.type), Attr::Bold);
 
   if (!ent.st) {
     sep();
 
-    dta.rows.push_back(
-        {{ent.st_err ? ent.st_err.message() : "Metadata unavailable"}});
+    add(ent.st_err ? ent.st_err.message() : "Metadata unavailable");
 
-    return dta;
+    return;
   }
-
   const auto &st = *ent.st;
-
-  add("Size:", st.sz ? fmt_sz(*st.sz) : "?");
-
-  add("Bytes:", st.sz ? std::to_string(*st.sz) : "?");
-
-  add("Links:", st.lnk_cnt ? std::to_string(*st.lnk_cnt) : "?");
-
+  if (st.sz) {
+    if (*st.sz >= 1024)
+      add(std::format("Size: {} B ({})", *st.sz, fmt_sz(*st.sz)));
+    else
+      add(std::format("Size: {} B", *st.sz));
+  } else
+    add("Size: ?");
+  add(std::format("Links: {}", st.lnk_cnt ? std::to_string(*st.lnk_cnt) : "?"));
   sep();
-
-  add("Owner:", fmt_id(st.uid, true));
-  add("Group:", fmt_id(st.gid, false));
-  add("Perms:", fmt_perms(st.perms));
-
+  add("Permissions", Attr::Bold);
+  add(std::format("Owner: {}", fmt_id(st.uid, true)));
+  add(std::format("Group: {}", fmt_id(st.gid, false)));
   sep();
-
-  add("Access:", st.acs_ts ? fmt_ts(*st.acs_ts) : "?");
-
-  add("Modify:", st.mod_ts ? fmt_ts(*st.mod_ts) : "?");
-
-  add("Change:", st.chg_ts ? fmt_ts(*st.chg_ts) : "?");
-
+  add(std::format("Owner: {}", fmt_perm_icons(st.perms, P::owner_read,
+                                              P::owner_write, P::owner_exec)));
+  add(std::format("Group: {}", fmt_perm_icons(st.perms, P::group_read,
+                                              P::group_write, P::group_exec)));
+  add(std::format("Other: {}",
+                  fmt_perm_icons(st.perms, P::others_read, P::others_write,
+                                 P::others_exec)));
+  sep();
+  add("Timestamps", Attr::Bold);
+  add(std::format("Access: {}", st.acs_ts ? fmt_ts(*st.acs_ts) : "?"));
+  add(std::format("Modify: {}", st.mod_ts ? fmt_ts(*st.mod_ts) : "?"));
+  add(std::format("Change: {}", st.chg_ts ? fmt_ts(*st.chg_ts) : "?"));
   if (st.birth_ts)
-    add("Birth:", fmt_ts(*st.birth_ts));
+    add(std::format("Birth: {}", fmt_ts(*st.birth_ts)));
+  if (ht >= 2)
+    canvas.prt(
+        0, ht - 2,
+        std::format("Inode: {}", st.ino ? std::to_string(*st.ino) : "?"));
 
-  sep();
-
-  if (st.ino)
-    add("Inode:", std::to_string(*st.ino));
-
-  if (st.dev)
-    add("Device:", std::to_string(*st.dev));
-
-  return dta;
+  canvas.prt(0, ht - 1,
+             std::format("Device: {}", st.dev ? std::to_string(*st.dev) : "?"));
 }
 
 static void upd_lyt(Pnl &dir_pnl, Pnl &dtls_pnl, bool show_dtls) {
@@ -163,10 +167,8 @@ void prt_view(Pnl &dir_pnl, Pnl &dtls_pnl, const State &st) {
       const auto &ent = st.dir_buf[*st.cur_idx];
 
       dtls_pnl.set_title(ent.nm.string());
-
       auto dtls_canvas = dtls_pnl.prt();
-
-      tbl.prt(dtls_canvas, mk_dtls_data(ent));
+      prt_dtls(dtls_canvas, ent);
 
     } else {
       dtls_pnl.set_title("Details");

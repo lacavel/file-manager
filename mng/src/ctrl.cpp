@@ -79,14 +79,38 @@ void rfsh_dir(State &st) {
     qry_curr_ent(st);
 }
 
-static void sel_next(State &st) {
-  if (st.cur_idx && *st.cur_idx + 1 < st.dir_buf.size())
+static void sel_down(State &st, std::size_t col_ht) {
+  if (!st.cur_idx || !col_ht)
+    return;
+
+  const auto idx = *st.cur_idx;
+
+  if (idx + 1 < st.dir_buf.size() && idx % col_ht < col_ht - 1)
     ++*st.cur_idx;
 }
 
-static void sel_prev(State &st) {
-  if (st.cur_idx && *st.cur_idx > 0)
+static void sel_up(State &st, std::size_t col_ht) {
+  if (!st.cur_idx || !col_ht)
+    return;
+
+  if (*st.cur_idx % col_ht > 0)
     --*st.cur_idx;
+}
+
+static void sel_left(State &st, std::size_t col_ht) {
+  if (!st.cur_idx || !col_ht)
+    return;
+
+  if (*st.cur_idx >= col_ht)
+    *st.cur_idx -= col_ht;
+}
+
+static void sel_right(State &st, std::size_t col_ht) {
+  if (!st.cur_idx || !col_ht)
+    return;
+
+  if (*st.cur_idx + col_ht < st.dir_buf.size())
+    *st.cur_idx += col_ht;
 }
 
 static void enter_dir(State &st) {
@@ -118,7 +142,7 @@ static void leave_dir(State &st) {
   }
 }
 
-void hndl_in(State &st, int key) {
+void hndl_in(State &st, int key, std::size_t col_ht) {
   using mng_gfx::Key;
 
   st.err.clear();
@@ -131,22 +155,30 @@ void hndl_in(State &st, int key) {
 
     case 'j':
     case static_cast<int>(Key::Down):
-      sel_next(st);
+      sel_down(st, col_ht);
       break;
 
     case 'k':
     case static_cast<int>(Key::Up):
-      sel_prev(st);
-      break;
-
-    case 'l':
-    case static_cast<int>(Key::Right):
-    case static_cast<int>(Key::Enter):
-      enter_dir(st);
+      sel_up(st, col_ht);
       break;
 
     case 'h':
     case static_cast<int>(Key::Left):
+      sel_left(st, col_ht);
+      break;
+
+    case 'l':
+    case static_cast<int>(Key::Right):
+      sel_right(st, col_ht);
+      break;
+
+    case 'J':
+    case static_cast<int>(Key::Enter):
+      enter_dir(st);
+      break;
+
+    case 'K':
     case static_cast<int>(Key::Backspace):
       leave_dir(st);
       break;
@@ -170,5 +202,4 @@ void hndl_in(State &st, int key) {
     st.err = err.what();
   }
 }
-
 } // namespace mng

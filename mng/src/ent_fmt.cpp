@@ -8,6 +8,22 @@
 namespace mng {
 
 using namespace mng_core;
+std::string fmt_perm_icons(EntPerms perms, EntPerms r, EntPerms w, EntPerms x) {
+  using P = EntPerms;
+
+  if (perms == P::unknown)
+    return "? ? ?";
+
+  const auto has = [perms](P p) { return (perms & p) != P::none; };
+
+  std::string ret;
+
+  ret += has(r) ? CAN_R_ICON : CAN_NOT_R_ICON;
+  ret += has(w) ? CAN_W_ICON : CAN_NOT_W_ICON;
+  ret += has(x) ? CAN_EXEC_ICON : CAN_NOT_EXEC_ICON;
+
+  return ret;
+}
 
 std::string fmt_sz(std::uintmax_t sz) {
   constexpr std::array units{"B", "KiB", "MiB", "GiB", "TiB", "PiB", "EiB"};
@@ -30,14 +46,10 @@ std::string fmt_ts(EntTs ts) {
   const auto tp = std::chrono::floor<std::chrono::seconds>(ts);
 
   const auto tm_val = std::chrono::system_clock::to_time_t(tp);
-
   std::tm tm{};
-
   if (!localtime_r(&tm_val, &tm))
     return "?";
-
   char buf[64]{};
-
   if (!std::strftime(buf, sizeof(buf), "%Y-%m-%d %H:%M:%S", &tm))
     return "?";
 
