@@ -1,7 +1,10 @@
 add_executable(mng)
 
 target_compile_features(mng PRIVATE c_std_17 cxx_std_20)
-target_sources(mng PRIVATE src/main.cpp src/args.c)
+target_sources(
+    mng
+    PRIVATE src/main.cpp src/ent_fmt.cpp src/ctrl.cpp src/v.cpp src/args.c
+)
 
 target_include_directories(
     mng

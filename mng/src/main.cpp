@@ -1,37 +1,46 @@
+#include "args.h"
+#include "ctrl.hpp"
+#include "st.hpp"
+#include "v.hpp"
+
 #include "mng_gfx/gfx.hpp"
 #include "mng_gfx/pnl.hpp"
 
-#include <chrono>
 #include <exception>
+#include <filesystem>
 #include <iostream>
-#include <thread>
 
-int main() {
+int main(int argc, char **argv) {
+  Args args;
+  parse_args(argc, argv, &args);
+
   try {
+    mng::State st;
+
+    mng::set_dir(st, args.init_path ? std::filesystem::path(args.init_path)
+                                    : std::filesystem::current_path());
+
     mng_gfx::Session gfx;
 
-    mng_gfx::Pnl pnl(0, 0, mng_gfx::get_wd(), mng_gfx::get_ht());
+    const auto wd = mng_gfx::get_wd();
+    const auto ht = mng_gfx::get_ht();
 
-    pnl.set_title("mng_gfx");
-    pnl.set_footer("Canvas test");
+    mng_gfx::Pnl dir_pnl(0, 0, wd, ht);
 
-    auto canvas = pnl.prt();
+    mng_gfx::Pnl dtls_pnl(0, 0, 1, 1);
 
-    canvas.prt(0, 0, "Normal text");
+    dtls_pnl.set_vis(false);
 
-    canvas.prt(0, 2, "Bold text", mng_gfx::Attr::Bold);
+    mng::prt_view(dir_pnl, dtls_pnl, st);
 
-    canvas.prt(0, 3, "Dim text", mng_gfx::Attr::Dim);
+    while (st.running) {
+      const int key = mng_gfx::get_key();
 
-    canvas.prt(0, 4, "Selected entry", mng_gfx::Attr::Reverse);
+      mng::hndl_in(st, key);
 
-    canvas.prt(0, 5, "Underlined text", mng_gfx::Attr::Underline);
-
-    canvas.prt(0, 7, "Unicode: café, 文件");
-
-    mng_gfx::rfsh();
-
-    std::this_thread::sleep_for(std::chrono::seconds(5));
+      if (st.running)
+        mng::prt_view(dir_pnl, dtls_pnl, st);
+    }
 
   } catch (const std::exception &err) {
     std::cerr << err.what() << '\n';
